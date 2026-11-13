@@ -1,1 +1,221 @@
 
+/* ===== CAU HINH CHUNG ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f0f5f9;
+    color: #263445;
+}
+
+/* ===== HEADER ===== */
+.header {
+    background: linear-gradient(120deg, #075985, #0284c7);
+    color: white;
+    padding: 25px 6%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.header h1 {
+    font-size: 27px;
+    margin-bottom: 8px;
+}
+
+.header p {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.connection {
+    background: rgba(255,255,255,0.15);
+    padding: 12px 18px;
+    border-radius: 25px;
+    font-size: 14px;
+}
+
+.dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    background: #facc15;
+    border-radius: 50%;
+    margin-right: 7px;
+}
+
+/* ===== KHUNG NOI DUNG ===== */
+.container {
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+.container h2 {
+    font-size: 21px;
+    margin: 30px 0 18px;
+    color: #075985;
+}
+
+/* ===== THE HIEN THI THONG SO ===== */
+.cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 22px;
+}
+
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.07);
+    border-left: 5px solid #0284c7;
+}
+
+.card h3 {
+    font-size: 17px;
+    margin-bottom: 18px;
+}
+
+.water {
+    border-left-color: #0284c7;
+}
+
+.temperature {
+    border-left-color: #f59e0b;
+}
+
+.value {
+    font-size: 42px;
+    font-weight: bold;
+    color: #075985;
+}
+
+.value small {
+    font-size: 20px;
+}
+
+.card p {
+    margin-top: 12px;
+    color: #718096;
+    font-size: 13px;
+}
+
+/* ===== BIEU DO ===== */
+.charts {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 22px;
+}
+
+.chart-box {
+    background: white;
+    padding: 22px;
+    border-radius: 15px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.07);
+    min-width: 0;
+}
+
+.chart-box h3 {
+    margin-bottom: 20px;
+    font-size: 16px;
+}
+
+/* ===== DIEU KHIEN ===== */
+.control-box {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.07);
+}
+
+.mode {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-bottom: 25px;
+    font-weight: bold;
+}
+
+.mode select {
+    padding: 10px 15px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.devices {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.device {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 22px;
+    border-radius: 12px;
+}
+
+.device h3 {
+    margin-bottom: 15px;
+}
+
+.device p {
+    margin-bottom: 15px;
+    color: #64748b;
+}
+
+button {
+    border: none;
+    padding: 11px 20px;
+    border-radius: 8px;
+    background: #0284c7;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+button:hover {
+    background: #0369a1;
+    transform: translateY(-2px);
+}
+
+/* ===== CHAN TRANG ===== */
+footer {
+    text-align: center;
+    color: #64748b;
+    padding: 35px 10px;
+    font-size: 13px;
+    line-height: 1.8;
+}
+
+/* ===== HIEN THI TREN DIEN THOAI ===== */
+@media (max-width: 700px) {
+    .cards,
+    .charts,
+    .devices {
+        grid-template-columns: 1fr;
+    }
+
+    .header {
+        padding: 22px;
+    }
+
+    .header h1 {
+        font-size: 22px;
+    }
+
+    .value {
+        font-size: 35px;
+    }
+}
+
