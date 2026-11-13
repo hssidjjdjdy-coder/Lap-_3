@@ -1,34 +1,113 @@
 
-// ===================================
-// 1. KHOI TAO DU LIEU
-// ===================================
+const BROKER = "wss://broker.hivemq.com:8884/mqtt";
 
-let waterLevel = 1.30;
-let temperature = 28.5;
+const TOPIC_SENSOR = "aquaculture/lab4/esp32_a8f31c/sensor";
+const TOPIC_CONTROL = "aquaculture/lab4/esp32_a8f31c/control";
+const TOPIC_STATUS = "aquaculture/lab4/esp32_a8f31c/status";
 
-let pumpState = false;
-let valveState = false;
+const client = mqtt.connect(BROKER, {
+    clientId: "AQUA_WEB_" + Math.random().toString(16).slice(2),
+    clean: true,
+    connectTimeout: 10000,
+    reconnectPeriod: 3000
+});
 
-// ===================================
-// 2. HIEN THI DU LIEU
-// ===================================
+let pumpState = 0;
+let valveState = 0;
+let currentMode = "AUTO";
 
-function updateDisplay() {
-    document.getElementById("waterLevel").textContent =
-        waterLevel.toFixed(2);
+// ==================================
+// KET NOI MQTT
+// ==================================
 
-    document.getElementById("temperature").textContent =
-        temperature.toFixed(1);
-}
+client.on("connect", () => {
+    document.getElementById("mqttStatus").innerText =
+        "Đã kết nối MQTT";
 
-// ===================================
-// 3. KHOI TAO BIEU DO
-// ===================================
+    client.subscribe([TOPIC_SENSOR, TOPIC_STATUS]);
+
+    console.log("MQTT CONNECTED");
+});
+
+client.on("reconnect", () => {
+    document.getElementById("mqttStatus").innerText =
+        "Đang kết nối lại MQTT...";
+});
+
+client.on("error", (error) => {
+    console.log("MQTT ERROR:", error);
+    document.getElementById("mqttStatus").innerText =
+        "Lỗi kết nối MQTT";
+});
+
+client.on("offline", () => {
+    document.getElementById("mqttStatus").innerText =
+        "MQTT ngoại tuyến";
+});
+
+// ==================================
+// NHAN DU LIEU MQTT
+// ==================================
+
+client.on("message", (topic, message) => {
+    let data;
+
+    try {
+        data = JSON.parse(message.toString());
+    } catch (error) {
+        console.log("Du lieu MQTT khong hop le");
+        return;
+    }
+
+    // Du lieu cam bien
+    if (topic === TOPIC_SENSOR) {
+
+        const level = Number(data.waterLevel);
+        const temp = Number(data.temperature);
+
+        if (!Number.isFinite(level) ||
+            !Number.isFinite(temp)) return;
+
+        document.getElementById("waterLevel").innerText =
+            level.toFixed(2);
+
+        document.getElementById("temperature").innerText =
+            temp.toFixed(1);
+
+        updateCharts(level, temp);
+    }
+
+    // Trang thai thiet bi
+    if (topic === TOPIC_STATUS) {
+
+        pumpState = Number(data.pump);
+        valveState = Number(data.valve);
+        currentMode = data.mode;
+
+        document.getElementById("pumpStatus").innerText =
+            pumpState ? "Đang bật" : "Đang tắt";
+
+        document.getElementById("valveStatus").innerText =
+            valveState ? "Đang mở" : "Đang đóng";
+
+        document.getElementById("mode").value = currentMode;
+
+        document.getElementById("pumpButton").innerText =
+            pumpState ? "Tắt máy bơm" : "Bật máy bơm";
+
+        document.getElementById("valveButton").innerText =
+            valveState ? "Đóng van xả" : "Mở van xả";
+    }
+});
+
+// ==================================
+// BIEU DO
+// ==================================
 
 const labels = [];
 
 const waterValues = [];
-const temperatureValues = [];
+const tempValues = [];
 
 const waterChart = new Chart(
     document.getElementById("waterChart"),
@@ -39,21 +118,15 @@ const waterChart = new Chart(
             datasets: [{
                 label: "Mực nước (m)",
                 data: waterValues,
-                borderColor: "#0284c7",
-                backgroundColor: "rgba(2,132,199,0.15)",
+                borderColor: "#0796d2",
+                backgroundColor: "rgba(7,150,210,0.15)",
                 fill: true,
-                tension: 0.4
+                tension: 0.3
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    min: 0,
-                    max: 2.5
-                }
-            }
+            animation: false
         }
     }
 );
@@ -63,137 +136,111 @@ const temperatureChart = new Chart(
     {
         type: "line",
         data: {
-            labels: [],
+            labels: labels,
             datasets: [{
                 label: "Nhiệt độ (°C)",
-                data: [],
-                borderColor: "#f59e0b",
-                backgroundColor: "rgba(245,158,11,0.15)",
+                data: tempValues,
+                borderColor: "#ff9800",
+                backgroundColor: "rgba(255,152,0,0.15)",
                 fill: true,
-                tension: 0.4
+                tension: 0.3
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false
+            animation: false
         }
     }
 );
 
-// ===================================
-// 4. CAP NHAT BIEU DO
-// ===================================
+function updateCharts(level, temp) {
 
-function updateCharts() {
     const time = new Date().toLocaleTimeString();
 
     labels.push(time);
-    waterValues.push(waterLevel);
+    waterValues.push(level);
+    tempValues.push(temp);
 
-    temperatureChart.data.labels.push(time);
-    temperatureChart.data.datasets[0].data.push(temperature);
-
-    if (labels.length > 10) {
+    if (labels.length > 15) {
         labels.shift();
         waterValues.shift();
-
-        temperatureChart.data.labels.shift();
-        temperatureChart.data.datasets[0].data.shift();
+        tempValues.shift();
     }
 
     waterChart.update();
     temperatureChart.update();
 }
 
-// ===================================
-// 5. DU LIEU MO PHONG
-// ===================================
+// ==================================
+// GUI LENH DIEU KHIEN
+// ==================================
 
-// Dữ liệu mẫu, chưa phải dữ liệu từ ESP32
+function sendControl() {
 
-function simulateSensorData() {
-    waterLevel += (Math.random() - 0.5) * 0.06;
-    temperature += (Math.random() - 0.5) * 0.4;
-
-    waterLevel = Math.max(0, Math.min(2.5, waterLevel));
-
-    updateDisplay();
-    updateCharts();
-}
-
-updateDisplay();
-updateCharts();
-
-setInterval(simulateSensorData, 2000);
-
-// ===================================
-// 6. DIEU KHIEN MAY BOM
-// ===================================
-
-function togglePump() {
-    if (document.getElementById("mode").value !== "MANUAL") {
-        alert("Vui lòng chuyển sang chế độ thủ công!");
+    if (!client.connected) {
+        alert("Chưa kết nối MQTT!");
         return;
     }
 
-    pumpState = !pumpState;
+    const command = {
+        mode: currentMode,
+        pump: pumpState,
+        valve: valveState
+    };
 
-    document.getElementById("pumpStatus").textContent =
-        pumpState ? "Đang bật" : "Đang tắt";
+    client.publish(TOPIC_CONTROL, JSON.stringify(command));
 
-    document.getElementById("pumpButton").textContent =
-        pumpState ? "Tắt máy bơm" : "Bật máy bơm";
+    console.log("Da gui lenh:", command);
 }
 
-// ===================================
-// 7. DIEU KHIEN VAN XA
-// ===================================
-
-function toggleValve() {
-    if (document.getElementById("mode").value !== "MANUAL") {
-        alert("Vui lòng chuyển sang chế độ thủ công!");
-        return;
-    }
-
-    valveState = !valveState;
-
-    document.getElementById("valveStatus").textContent =
-        valveState ? "Đang mở" : "Đang đóng";
-
-    document.getElementById("valveButton").textContent =
-        valveState ? "Đóng van xả" : "Mở van xả";
-}
-
-// ===================================
-// 8. THAY DOI CHE DO
-// ===================================
+// ==================================
+// CHON CHE DO
+// ==================================
 
 document.getElementById("mode").addEventListener("change", function() {
-    const manual = this.value === "MANUAL";
 
-    document.getElementById("pumpButton").disabled = !manual;
-    document.getElementById("valveButton").disabled = !manual;
+    currentMode = this.value;
 
-    if (!manual) {
-        pumpState = false;
-        valveState = false;
-
-        document.getElementById("pumpStatus").textContent = "Đang tắt";
-        document.getElementById("valveStatus").textContent = "Đang đóng";
-
-        document.getElementById("pumpButton").textContent = "Bật máy bơm";
-        document.getElementById("valveButton").textContent = "Mở van xả";
+    if (currentMode === "AUTO") {
+        pumpState = 0;
+        valveState = 0;
     }
+
+    sendControl();
 });
 
-// Ban đầu ở chế độ tự động
-document.getElementById("pumpButton").disabled = true;
-document.getElementById("valveButton").disabled = true;
+// ==================================
+// NUT MAY BOM
+// ==================================
 
-// ===================================
-// 9. TRANG THAI MQTT
-// ===================================
+function togglePump() {
 
-document.getElementById("mqttStatus").textContent =
-    "Chưa kết nối ESP32 - MQTT";
+    if (currentMode !== "MANUAL") {
+        alert("Hãy chuyển sang chế độ Thủ công!");
+        return;
+    }
 
+    pumpState = pumpState ? 0 : 1;
+
+    if (pumpState) valveState = 0;
+
+    sendControl();
+}
+
+// ==================================
+// NUT VAN XA
+// ==================================
+
+function toggleValve() {
+
+    if (currentMode !== "MANUAL") {
+        alert("Hãy chuyển sang chế độ Thủ công!");
+        return;
+    }
+
+    valveState = valveState ? 0 : 1;
+
+    if (valveState) pumpState = 0;
+
+    sendControl();
+}
