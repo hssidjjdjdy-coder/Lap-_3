@@ -1,1 +1,0 @@
-# aquaculture-monitor
