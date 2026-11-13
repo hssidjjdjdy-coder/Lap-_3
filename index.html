@@ -1,1 +1,105 @@
 
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AQUA MONITOR - Giám sát bể nuôi</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+</head>
+
+<body>
+    <header class="header">
+        <div>
+            <h1>🐟 AQUA MONITOR</h1>
+            <p>Hệ thống giám sát môi trường bể nuôi thủy sản</p>
+        </div>
+        <div class="connection">
+            <span class="dot"></span>
+            <span id="mqttStatus">Chưa kết nối MQTT</span>
+        </div>
+    </header>
+
+    <main class="container">
+
+        <h2>📊 Tổng quan hệ thống</h2>
+
+        <section class="cards">
+            <div class="card water">
+                <h3>💧 Mực nước</h3>
+                <div class="value">
+                    <span id="waterLevel">--</span>
+                    <small>m</small>
+                </div>
+                <p>Giá trị cảm biến HC-SR04</p>
+            </div>
+
+            <div class="card temperature">
+                <h3>🌡️ Nhiệt độ nước</h3>
+                <div class="value">
+                    <span id="temperature">--</span>
+                    <small>°C</small>
+                </div>
+                <p>Giá trị cảm biến DS18B20</p>
+            </div>
+        </section>
+
+        <h2>📈 Biểu đồ theo dõi</h2>
+
+        <section class="charts">
+            <div class="chart-box">
+                <h3>Biểu đồ mực nước</h3>
+                <canvas id="waterChart"></canvas>
+            </div>
+
+            <div class="chart-box">
+                <h3>Biểu đồ nhiệt độ</h3>
+                <canvas id="temperatureChart"></canvas>
+            </div>
+        </section>
+
+        <h2>⚙️ Điều khiển thiết bị</h2>
+
+        <section class="control-box">
+            <div class="mode">
+                <span>Chế độ hoạt động:</span>
+                <select id="mode">
+                    <option value="AUTO">Tự động</option>
+                    <option value="MANUAL">Thủ công</option>
+                </select>
+            </div>
+
+            <div class="devices">
+                <div class="device">
+                    <h3>🚰 Máy bơm nước</h3>
+                    <p id="pumpStatus">Đang tắt</p>
+                    <button id="pumpButton" onclick="togglePump()">
+                        Bật máy bơm
+                    </button>
+                </div>
+
+                <div class="device">
+                    <h3>🔴 Van xả nước</h3>
+                    <p id="valveStatus">Đang đóng</p>
+                    <button id="valveButton" onclick="toggleValve()">
+                        Mở van xả
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>Đề tài: Hệ thống giám sát môi trường bể nuôi thủy sản</p>
+            <p>Sử dụng ESP32 - FreeRTOS - MQTT</p>
+        </footer>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
